@@ -3,77 +3,71 @@
 #include <stdbool.h>
 #include <string.h>
 
-// Estrutura de um nó
-typedef struct Node {
+// Estrutura de um nó para os filmes
+typedef struct NodeFilms {
     int key;
-    char actorName[BUFSIZ];
-    int* movies;
-    int numMovies;
+    char filmName[BUFSIZ];
+    int posicao;
     bool isRed;
-    struct Node* parent;
-    struct Node* left;
-    struct Node* right;
-} Node;
+    struct NodeFilms* parent;
+    struct NodeFilms* left;
+    struct NodeFilms* right;
+} NodeFilms;
 
 // Função auxiliar para criar um novo nó
-Node* createNode(int key, const char* actorName) {
-    Node* newNode = (Node*)malloc(sizeof(Node));
-    newNode->key = key;
-    strcpy(newNode->actorName, actorName);
-    newNode->movies = NULL;
-    newNode->numMovies = 0;
-    newNode->isRed = true;
-    newNode->parent = NULL;
-    newNode->left = NULL;
-    newNode->right = NULL;
-    return newNode;
+NodeFilms* createNodeFilms(int key, const char* filmName, int posicao) {
+    NodeFilms* newNodeFilms = (NodeFilms*)malloc(sizeof(NodeFilms));
+    newNodeFilms->key = key;
+    strcpy(newNodeFilms->filmName, filmName);
+    newNodeFilms->posicao = posicao;
+    newNodeFilms->isRed = true;
+    newNodeFilms->parent = NULL;
+    newNodeFilms->left = NULL;
+    newNodeFilms->right = NULL;
+    return newNodeFilms;
 }
 
 // Função auxiliar para liberar a memória alocada para os nós
-void freeNode(Node* node) {
+void freeNodeFilms(NodeFilms* node) {
     if (node != NULL) {
-        free(node->movies);
         free(node);
     }
 }
 
 // Função auxiliar para liberar a memória alocada para a árvore
-void freeTree(Node* root) {
+void freeTreeFilms(NodeFilms* root) {
     if (root != NULL) {
-        freeTree(root->left);
-        freeTree(root->right);
-        freeNode(root);
+        freeTreeFilms(root->left);
+        freeTreeFilms(root->right);
+        freeNodeFilms(root);
     }
 }
 
 // Função auxiliar para imprimir a árvore usando um percurso em ordem
-void printTree(Node* root) {
+void printTreeFilms(NodeFilms* root) {
     if (root != NULL) {
         printf("[");
-        printTree(root->left);
-        printf(" Key: %d, Actor: %s ", root->key, root->actorName);
-        printTree(root->right);
+        printTreeFilms(root->left);
+        printf(" Key: %d, Filme: %s Posição: %d", root->key, root->filmName, root->posicao);
+        printTreeFilms(root->right);
         printf("]");
     }
 }
 
 // Função auxiliar para imprimir a árvore em um arquivo .txt usando um percurso em ordem
-void printTreeToFile(Node* root, FILE* file) {
+void printTreeFilmsToFile(NodeFilms* root, FILE* file) {
     if (root != NULL) {
         fprintf(file, "[");
-        printTreeToFile(root->left, file);
-        fprintf(file, " Key: %d, Actor: %s", root->key, root->actorName);  // Filmes:
-        for (int i = 0; i < root->numMovies; i++) {
-            fprintf(file, " %d,", root->movies[i]);
-        }
-        printTreeToFile(root->right, file);
+        printTreeFilmsToFile(root->left, file);
+        fprintf(file, " Key: %d, Filme: %s Posição: %d", root->key, root->filmName, root->posicao);
+        printTreeFilmsToFile(root->right, file);
         fprintf(file, "]");
     }
 }
 
 // Função auxiliar para rotacionar um nó para a esquerda
-Node* rotateLeft(Node* root, Node* node) {
-    Node* rightChild = node->right;
+NodeFilms* rotateLeftFilms(NodeFilms* root, NodeFilms* node) {
+    NodeFilms* rightChild = node->right;
     node->right = rightChild->left;
     if (rightChild->left != NULL) {
         rightChild->left->parent = node;
@@ -92,8 +86,8 @@ Node* rotateLeft(Node* root, Node* node) {
 }
 
 // Função auxiliar para rotacionar um nó para a direita
-Node* rotateRight(Node* root, Node* node) {
-    Node* leftChild = node->left;
+NodeFilms* rotateRightFilms(NodeFilms* root, NodeFilms* node) {
+    NodeFilms* leftChild = node->left;
     node->left = leftChild->right;
     if (leftChild->right != NULL) {
         leftChild->right->parent = node;
@@ -112,17 +106,17 @@ Node* rotateRight(Node* root, Node* node) {
 }
 
 // Função auxiliar para realizar a troca de cor dos nós
-void swapColors(Node* node1, Node* node2) {
+void swapColorsFilms(NodeFilms* node1, NodeFilms* node2) {
     bool tempColor = node1->isRed;
     node1->isRed = node2->isRed;
     node2->isRed = tempColor;
 }
 
 // Função auxiliar para realizar o balanceamento da árvore após a inserção
-Node* fixInsertion(Node* root, Node* node) {
+NodeFilms* fixInsertionFilms(NodeFilms* root, NodeFilms* node) {
     while (node != root && node->parent->isRed) {
         if (node->parent == node->parent->parent->left) {
-            Node* uncle = node->parent->parent->right;
+            NodeFilms* uncle = node->parent->parent->right;
             if (uncle != NULL && uncle->isRed) {
                 node->parent->isRed = false;
                 uncle->isRed = false;
@@ -131,14 +125,14 @@ Node* fixInsertion(Node* root, Node* node) {
             } else {
                 if (node == node->parent->right) {
                     node = node->parent;
-                    root = rotateLeft(root, node);
+                    root = rotateLeftFilms(root, node);
                 }
                 node->parent->isRed = false;
                 node->parent->parent->isRed = true;
-                root = rotateRight(root, node->parent->parent);
+                root = rotateRightFilms(root, node->parent->parent);
             }
         } else {
-            Node* uncle = node->parent->parent->left;
+            NodeFilms* uncle = node->parent->parent->left;
             if (uncle != NULL && uncle->isRed) {
                 node->parent->isRed = false;
                 uncle->isRed = false;
@@ -147,11 +141,11 @@ Node* fixInsertion(Node* root, Node* node) {
             } else {
                 if (node == node->parent->left) {
                     node = node->parent;
-                    root = rotateRight(root, node);
+                    root = rotateRightFilms(root, node);
                 }
                 node->parent->isRed = false;
                 node->parent->parent->isRed = true;
-                root = rotateLeft(root, node->parent->parent);
+                root = rotateLeftFilms(root, node->parent->parent);
             }
         }
     }
@@ -160,14 +154,11 @@ Node* fixInsertion(Node* root, Node* node) {
 }
 
 // Função para inserir um novo nó na árvore
-Node* insertNode(Node* root, int key, const char* actorName, const int* movies, int numMovies) {
-    Node* newNode = createNode(key, actorName);
-    newNode->movies = (int*)malloc(numMovies * sizeof(int));
-    memcpy(newNode->movies, movies, numMovies * sizeof(int));
-    newNode->numMovies = numMovies;
+NodeFilms* insertNodeFilms(NodeFilms* root, int key, const char* filmName, int posicao) {
+    NodeFilms* newNodeFilms = createNodeFilms(key, filmName, posicao);
 
-    Node* parent = NULL;
-    Node* current = root;
+    NodeFilms* parent = NULL;
+    NodeFilms* current = root;
     while (current != NULL) {
         parent = current;
         if (key < current->key) {
@@ -177,22 +168,22 @@ Node* insertNode(Node* root, int key, const char* actorName, const int* movies, 
         }
     }
 
-    newNode->parent = parent;
+    newNodeFilms->parent = parent;
     if (parent == NULL) {
-        root = newNode;
+        root = newNodeFilms;
     } else if (key < parent->key) {
-        parent->left = newNode;
+        parent->left = newNodeFilms;
     } else {
-        parent->right = newNode;
+        parent->right = newNodeFilms;
     }
 
-    root = fixInsertion(root, newNode);
+    root = fixInsertionFilms(root, newNodeFilms);
     return root;
 }
 
 // Função auxiliar para encontrar o nó com a chave especificada
-Node* searchNode(Node* root, int key) {
-    Node* current = root;
+NodeFilms* searchNodeFilms(NodeFilms* root, int key) {
+    NodeFilms* current = root;
     while (current != NULL && current->key != key) {
         if (key < current->key) {
             current = current->left;
@@ -204,7 +195,7 @@ Node* searchNode(Node* root, int key) {
 }
 
 // Função auxiliar para encontrar o nó mínimo a partir do nó especificado
-Node* findMinimum(Node* node) {
+NodeFilms* findMinimumFilms(NodeFilms* node) {
     while (node->left != NULL) {
         node = node->left;
     }
@@ -212,14 +203,14 @@ Node* findMinimum(Node* node) {
 }
 
 // Função auxiliar para realizar o balanceamento da árvore após a exclusão
-Node* fixDeletion(Node* root, Node* node) {
+NodeFilms* fixDeletionFilms(NodeFilms* root, NodeFilms* node) {
     while (node != root && !node->isRed) {
         if (node == node->parent->left) {
-            Node* sibling = node->parent->right;
+            NodeFilms* sibling = node->parent->right;
             if (sibling->isRed) {
                 sibling->isRed = false;
                 node->parent->isRed = true;
-                root = rotateLeft(root, node->parent);
+                root = rotateLeftFilms(root, node->parent);
                 sibling = node->parent->right;
             }
             if ((!sibling->left || !sibling->left->isRed) &&
@@ -230,21 +221,21 @@ Node* fixDeletion(Node* root, Node* node) {
                 if (!sibling->right || !sibling->right->isRed) {
                     sibling->left->isRed = false;
                     sibling->isRed = true;
-                    root = rotateRight(root, sibling);
+                    root = rotateRightFilms(root, sibling);
                     sibling = node->parent->right;
                 }
                 sibling->isRed = node->parent->isRed;
                 node->parent->isRed = false;
                 sibling->right->isRed = false;
-                root = rotateLeft(root, node->parent);
+                root = rotateLeftFilms(root, node->parent);
                 node = root;
             }
         } else {
-            Node* sibling = node->parent->left;
+            NodeFilms* sibling = node->parent->left;
             if (sibling->isRed) {
                 sibling->isRed = false;
                 node->parent->isRed = true;
-                root = rotateRight(root, node->parent);
+                root = rotateRightFilms(root, node->parent);
                 sibling = node->parent->left;
             }
             if ((!sibling->left || !sibling->left->isRed) &&
@@ -255,13 +246,13 @@ Node* fixDeletion(Node* root, Node* node) {
                 if (!sibling->left || !sibling->left->isRed) {
                     sibling->right->isRed = false;
                     sibling->isRed = true;
-                    root = rotateLeft(root, sibling);
+                    root = rotateLeftFilms(root, sibling);
                     sibling = node->parent->left;
                 }
                 sibling->isRed = node->parent->isRed;
                 node->parent->isRed = false;
                 sibling->left->isRed = false;
-                root = rotateRight(root, node->parent);
+                root = rotateRightFilms(root, node->parent);
                 node = root;
             }
         }
@@ -271,20 +262,20 @@ Node* fixDeletion(Node* root, Node* node) {
 }
 
 // Função para deletar um nó da árvore
-Node* deleteNode(Node* root, int key) {
-    Node* node = searchNode(root, key);
+NodeFilms* deleteNodeFilms(NodeFilms* root, int key) {
+    NodeFilms* node = searchNodeFilms(root, key);
     if (node == NULL) {
         return root;
     }
 
-    Node* child = NULL;
+    NodeFilms* child = NULL;
     if (node->left == NULL || node->right == NULL) {
         child = node;
     } else {
-        child = findMinimum(node->right);
+        child = findMinimumFilms(node->right);
     }
 
-    Node* sibling = NULL;
+    NodeFilms* sibling = NULL;
     if (child->left != NULL) {
         sibling = child->left;
     } else {
@@ -305,23 +296,17 @@ Node* deleteNode(Node* root, int key) {
 
     if (child != node) {
         node->key = child->key;
-        strcpy(node->actorName, child->actorName);
-        node->movies = child->movies;
-        node->numMovies = child->numMovies;
-        child->movies = NULL; // Set child's movies to NULL to prevent double freeing
+        strcpy(node->filmName, child->filmName);
+        node->posicao = child->posicao;
     }
 
-    root = fixDeletion(root, child);
+    root = fixDeletionFilms(root, child);
 
-    freeNode(child);
+    freeNodeFilms(child);
     return root;
 }
 
-void printNode(Node* node) {
-    printf("Key: %d, Actor: %s\n", node->key, node->actorName);
-    printf("Movies: ");
-    for (int i = 0; i < node->numMovies; i++) {
-        printf("%d ", node->movies[i]);
-    }
+void printNodeFilms(NodeFilms* node) {
+    printf(" Key: %d, Filme: %s Posição: %d", node->key, node->filmName, node->posicao);
     printf("\n");
 }

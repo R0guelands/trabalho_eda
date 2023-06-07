@@ -58,7 +58,7 @@ void readTSVFile(const char* filename, Node** root, int numLines) {
         return;
     }
 
-    while (fgets(line, sizeof(line), file) != NULL && numLines > 0) {
+    while (fgets(line, sizeof(line), file) != NULL) { //&& numLines > 0
         char* token = strtok(line, "\t");
         int column = 0;
         int key;
@@ -94,7 +94,7 @@ void readTSVFile(const char* filename, Node** root, int numLines) {
         *root = insertNode(*root, key, actorName, moviesArray, numMovies);
 
         free(moviesArray);
-        numLines--;
+        // numLines--;
     }
 
     fclose(file);
